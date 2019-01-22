@@ -1,31 +1,31 @@
 import React, { Component } from 'react';
-import './App.css';
 import * as THREE from 'three';
+import BasePlate from './components/three/BasePlate';
+import {basePlateLength, basePlateWidth} from './constants';
+import './App.css';
 
 class App extends Component {
   mount: HTMLDivElement | null;
   scene: THREE.Scene;
   camera: THREE.PerspectiveCamera;
   renderer: THREE.WebGLRenderer;
-  cube: THREE.Mesh;
   frameId: number | null;
+  basePlate: BasePlate;
 
   constructor(props: any) {
     super(props);
     this.mount = null;
     this.scene = new THREE.Scene();
+    this.scene.background = new THREE.Color( 0xffffff );
     this.camera = new THREE.PerspectiveCamera();
     this.renderer = new THREE.WebGLRenderer({ antialias: true });
 
-    const geometry = new THREE.BoxGeometry(1, 1, 1)
-    const material = new THREE.MeshBasicMaterial({ color: '#433F81'     })
-    this.cube = new THREE.Mesh(geometry, material)
+    this.basePlate = new BasePlate(this.scene, basePlateLength, basePlateWidth);
 
     this.frameId = null;
   }
 
   componentDidMount = () => {
-    console.log(this);
     if (this.mount) {
       const width = this.mount.clientWidth
       const height = this.mount.clientHeight
@@ -42,7 +42,6 @@ class App extends Component {
       this.renderer.setSize(width, height)
       this.mount.appendChild(this.renderer.domElement)
       
-      this.scene.add(this.cube)
       this.start()
     }
   }
@@ -67,8 +66,6 @@ class App extends Component {
   }
 
   animate = () => {
-   this.cube.rotation.x += 0.01
-   this.cube.rotation.y += 0.01
    this.renderScene()
    this.frameId = window.requestAnimationFrame(this.animate)
  }
