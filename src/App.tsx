@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import * as THREE from 'three';
 import Menu from './components/Menu';
 import BasePlate, {HoverableMesh} from './components/three/BasePlate';
+import Columns from './components/three/Columns';
 import {basePlateLength, basePlateWidth} from './constants';
 import './App.css';
 import { OrbitControls } from 'three-orbitcontrols-ts';
@@ -13,6 +14,7 @@ class App extends Component<{}, {interfaceState: string}> {
   renderer: THREE.WebGLRenderer;
   frameId: number | null;
   basePlate: BasePlate;
+  columns: Columns;
   controls: OrbitControls | null;
   raycaster = new THREE.Raycaster();
   mouse = new THREE.Vector2();
@@ -29,7 +31,8 @@ class App extends Component<{}, {interfaceState: string}> {
     this.renderer = new THREE.WebGLRenderer({ antialias: true });
     this.controls = null;
 
-    this.basePlate = new BasePlate(this.scene, basePlateLength, basePlateWidth);
+    this.basePlate = new BasePlate(this.scene, basePlateLength, basePlateWidth, this.placeColumn);
+    this.columns = new Columns(this.scene, basePlateLength, basePlateWidth);
 
     this.frameId = null;
   }
@@ -106,6 +109,22 @@ class App extends Component<{}, {interfaceState: string}> {
     }
   }
 
+  clickOnScene = () => {
+    this.raycaster.setFromCamera( this.mouse, this.camera );
+    var intersects = this.raycaster.intersectObjects( this.basePlate.getHoverableObjects() );
+
+    if(intersects.length) {
+      (intersects[0].object as HoverableMesh).onClick(this.state.interfaceState);
+    }
+  }
+
+  placeColumn = (length: number, width: number) => {
+    if(this.state.interfaceState == "ADD_COLUMN"){
+      this.changeInterfaceState("RESIZE_COLUMN");
+      this.columns.addColumn(length, width);
+    }
+  }
+
   renderScene = () => {
     this.renderer.render(this.scene, this.camera)
   }
@@ -118,10 +137,11 @@ class App extends Component<{}, {interfaceState: string}> {
 
   render(){
     return(
-      <div className="App">
+      <div className={`App ${this.state.interfaceState}`}>
         <div
           style={{ width: '100%', height: '100%' }}
           ref={(mount) => { this.mount = mount }}
+          onClick={this.clickOnScene}
         />
         <Menu interfaceState={this.state.interfaceState} changeInterfaceState={this.changeInterfaceState} />
       </div>

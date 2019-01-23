@@ -1,3 +1,11 @@
 .App {
   height: 100vh;
 }
+
+.App.ADD_COLUMN {
+  cursor: copy;
+}
+
+.App.RESIZE_COLUMN {
+  cursor: ns-resize;
+}

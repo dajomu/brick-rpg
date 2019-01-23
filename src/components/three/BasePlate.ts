@@ -20,12 +20,13 @@ export default class BasePlate {
   squares = new THREE.Group();
   basePlateLength: number;
   basePlateWidth: number;
-  
+  placeColumn: (length: number, width: number) => void;
 
-  constructor(scene: THREE.Scene, basePlateLength: number, basePlateWidth: number) {
+  constructor(scene: THREE.Scene, basePlateLength: number, basePlateWidth: number, placeColumn: (length: number, width: number) => void) {
     this.scene = scene;
     this.basePlateLength = basePlateLength;
     this.basePlateWidth = basePlateWidth;
+    this.placeColumn = placeColumn;
     this.initSquares(basePlateLength, basePlateWidth);
     this.squares.position.add(new THREE.Vector3(-(basePlateLength * brickLength /2), 0, -(basePlateWidth * brickLength /2) ));
     this.initGhostBrick();
@@ -65,7 +66,12 @@ export default class BasePlate {
     const material = new THREE.MeshBasicMaterial( {color: 0xeeeeee} );
     const cube = new THREE.Mesh( geometry, material );
     (cube as HoverableMesh).onHover = (interfaceState: string) => {if(interfaceState == "ADD_COLUMN") {this.placeGhostBrick(length, width)}}
-    (cube as HoverableMesh).onClick = () => {this.hideGhostBrick()}
+    (cube as HoverableMesh).onClick = (interfaceState: string) => {
+      this.hideGhostBrick();
+      if(interfaceState == "ADD_COLUMN") {
+        this.placeColumn(length, width);
+      }
+    }
 
     const outlineGeometry = new THREE.EdgesGeometry( geometry ); // or WireframeGeometry( geometry )
     const outlineMaterial = new THREE.LineBasicMaterial( { color: 0x222222, linewidth: 100 } );
