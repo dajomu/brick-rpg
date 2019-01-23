@@ -1,11 +1,12 @@
 import React, { Component } from 'react';
 import * as THREE from 'three';
-import BasePlate from './components/three/BasePlate';
+import Menu from './components/Menu';
+import BasePlate, {HoverableMesh} from './components/three/BasePlate';
 import {basePlateLength, basePlateWidth} from './constants';
 import './App.css';
 import { OrbitControls } from 'three-orbitcontrols-ts';
 
-class App extends Component {
+class App extends Component<{}, {interfaceState: string}> {
   mount: HTMLDivElement | null;
   scene: THREE.Scene;
   camera: THREE.PerspectiveCamera;
@@ -13,9 +14,14 @@ class App extends Component {
   frameId: number | null;
   basePlate: BasePlate;
   controls: OrbitControls | null;
+  raycaster = new THREE.Raycaster();
+  mouse = new THREE.Vector2();
 
-  constructor(props: any) {
+  constructor(props: {}) {
     super(props);
+    this.state = {
+      interfaceState: 'VIEW',
+    };
     this.mount = null;
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.Color( 0xffffff );
@@ -54,6 +60,8 @@ class App extends Component {
 
       this.controls.enableZoom = true;
       this.controls.zoomSpeed = 1.0;
+
+      window.addEventListener( 'mousemove', this.onMouseMove, false );
       
       this.start()
     }
@@ -64,6 +72,11 @@ class App extends Component {
     if(this.mount) {
       this.mount.removeChild(this.renderer.domElement)
     }
+  }
+
+  onMouseMove = ( event: MouseEvent ) => {
+    this.mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+    this.mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
   }
 
   start = () => {
@@ -79,12 +92,28 @@ class App extends Component {
   }
 
   animate = () => {
-   this.renderScene()
-   this.frameId = window.requestAnimationFrame(this.animate)
- }
+    this.checkRayCollisions();
+    this.renderScene()
+    this.frameId = window.requestAnimationFrame(this.animate)
+  }
+
+  checkRayCollisions = () => {
+    this.raycaster.setFromCamera( this.mouse, this.camera );
+    var intersects = this.raycaster.intersectObjects( this.basePlate.getHoverableObjects() );
+
+    if(intersects.length) {
+      (intersects[0].object as HoverableMesh).onHover(this.state.interfaceState);
+    }
+  }
 
   renderScene = () => {
     this.renderer.render(this.scene, this.camera)
+  }
+
+  public changeInterfaceState = (newState: string) => {
+    this.setState({
+      interfaceState: newState,
+    })
   }
 
   render(){
@@ -94,6 +123,7 @@ class App extends Component {
           style={{ width: '100%', height: '100%' }}
           ref={(mount) => { this.mount = mount }}
         />
+        <Menu interfaceState={this.state.interfaceState} changeInterfaceState={this.changeInterfaceState} />
       </div>
     )
   }

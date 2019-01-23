@@ -1,0 +1,23 @@
+.Menu {
+  width: 200px;
+  height: 300px;
+  position: absolute;
+  background: #eeeeee;
+  border: 1px solid #222222;
+  border-radius: 4px;
+  top: 20px;
+  right: 20px;
+}
+
+.menu-button {
+  width: 160px;
+  height: 30px;
+  margin: 20px;
+  border: 1px solid #222222;
+  background: #ffffff;
+}
+
+.menu-button.selected {
+  border: 1px solid #ffffff;
+  background: #cccccc;
+}
