@@ -1,4 +1,4 @@
-import { brickHeight, brickLength } from '../../constants';
+import { brickHeight, brickLength, wireFrameColour, selectedWireFrameColour } from '../../constants';
 import * as THREE from 'three';
 
 export interface HoverableMesh extends THREE.Mesh {
@@ -9,7 +9,7 @@ export interface HoverableMesh extends THREE.Mesh {
 const createGhostBrick = () => {
   const geometry = new THREE.BoxGeometry( brickLength, brickHeight, brickLength );
   const outlineGeometry = new THREE.EdgesGeometry( geometry );
-  const outlineMaterial = new THREE.LineBasicMaterial( { color: 0xff2222, linewidth: 100 } );
+  const outlineMaterial = new THREE.LineBasicMaterial( { color: selectedWireFrameColour, linewidth: 100 } );
   return new THREE.LineSegments( outlineGeometry, outlineMaterial );
 }
 
@@ -74,7 +74,7 @@ export default class BasePlate {
     }
 
     const outlineGeometry = new THREE.EdgesGeometry( geometry ); // or WireframeGeometry( geometry )
-    const outlineMaterial = new THREE.LineBasicMaterial( { color: 0x222222, linewidth: 100 } );
+    const outlineMaterial = new THREE.LineBasicMaterial( { color: wireFrameColour, linewidth: 100 } );
     const cubeOutline = new THREE.LineSegments( outlineGeometry, outlineMaterial );
 
     square.add(cube);

@@ -1,4 +1,4 @@
-import { brickHeight, brickLength } from '../../constants';
+import { brickHeight, brickLength, wireFrameColour, selectedWireFrameColour } from '../../constants';
 import * as THREE from 'three';
 
 export interface HoverableMesh extends THREE.Mesh {
@@ -11,6 +11,7 @@ export default class Columns {
   columns = new THREE.Group();
   basePlateLength: number;
   basePlateWidth: number;
+  resizeColumn?: THREE.Group;
 
   constructor(scene: THREE.Scene, basePlateLength: number, basePlateWidth: number) {
     this.scene = scene;
@@ -26,8 +27,8 @@ export default class Columns {
     const material = new THREE.MeshBasicMaterial( {color: 0xffffff} );
     const cube = new THREE.Mesh( geometry, material );
 
-    const outlineGeometry = new THREE.EdgesGeometry( geometry ); // or WireframeGeometry( geometry )
-    const outlineMaterial = new THREE.LineBasicMaterial( { color: 0x222222, linewidth: 100 } );
+    const outlineGeometry = new THREE.EdgesGeometry( geometry );
+    const outlineMaterial = new THREE.LineBasicMaterial( { color: selectedWireFrameColour, linewidth: 100 } );
     const cubeOutline = new THREE.LineSegments( outlineGeometry, outlineMaterial );
 
     column.add(cube);
@@ -35,5 +36,22 @@ export default class Columns {
     column.position.add(new THREE.Vector3(length * brickLength, 0.56, width * brickLength));
     column.name = `column-${length}-${width}`;
     this.columns.add(column);
+    this.resizeColumn = column;
+  }
+
+  public resizeSelectedColumn = (length: number) => {
+    if(this.resizeColumn && length > 0) {
+      this.resizeColumn.children.forEach(child => {
+        child.scale.setY(length);
+      });
+      this.resizeColumn.position.setY(length/2)
+    }
+  }
+
+  public deselectColumn() {
+    if(this.resizeColumn) {
+      ((this.resizeColumn.children[1] as THREE.LineSegments).material as any).color.set(wireFrameColour);
+      this.resizeColumn = undefined;
+    }
   }
 }

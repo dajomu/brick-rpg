@@ -18,6 +18,7 @@ class App extends Component<{}, {interfaceState: string}> {
   controls: OrbitControls | null;
   raycaster = new THREE.Raycaster();
   mouse = new THREE.Vector2();
+  clickedMouse?: THREE.Vector2;
 
   constructor(props: {}) {
     super(props);
@@ -57,7 +58,7 @@ class App extends Component<{}, {interfaceState: string}> {
 
       this.controls = new OrbitControls(this.camera, this.renderer.domElement);
       this.controls.minPolarAngle = 0;
-      this.controls.maxPolarAngle = Math.PI;
+      this.controls.maxPolarAngle = Math.PI/2 -0.02;
       this.controls.minDistance = 0;
       this.controls.maxDistance = Infinity;
 
@@ -101,20 +102,36 @@ class App extends Component<{}, {interfaceState: string}> {
   }
 
   checkRayCollisions = () => {
-    this.raycaster.setFromCamera( this.mouse, this.camera );
-    var intersects = this.raycaster.intersectObjects( this.basePlate.getHoverableObjects() );
+    const {interfaceState} = this.state;
+    if(interfaceState == "ADD_COLUMN") {
+      this.raycaster.setFromCamera( this.mouse, this.camera );
+      var intersects = this.raycaster.intersectObjects( this.basePlate.getHoverableObjects() );
 
-    if(intersects.length) {
-      (intersects[0].object as HoverableMesh).onHover(this.state.interfaceState);
+      if(intersects.length) {
+        (intersects[0].object as HoverableMesh).onHover(this.state.interfaceState);
+      }
+    } else if (interfaceState == "RESIZE_COLUMN" && this.clickedMouse && this.controls) {
+      const zoomDistance = this.controls.target.distanceTo( this.controls.object.position )
+      this.columns.resizeSelectedColumn(Math.round((this.mouse.y - this.clickedMouse.y) * zoomDistance / 2));
     }
   }
 
   clickOnScene = () => {
-    this.raycaster.setFromCamera( this.mouse, this.camera );
-    var intersects = this.raycaster.intersectObjects( this.basePlate.getHoverableObjects() );
-
-    if(intersects.length) {
-      (intersects[0].object as HoverableMesh).onClick(this.state.interfaceState);
+    const {interfaceState} = this.state;
+    if(interfaceState == "ADD_COLUMN") {
+      this.clickedMouse = this.mouse.clone();
+      this.raycaster.setFromCamera( this.mouse, this.camera );
+      var intersects = this.raycaster.intersectObjects( this.basePlate.getHoverableObjects() );
+  
+      if(intersects.length) {
+        (intersects[0].object as HoverableMesh).onClick(this.state.interfaceState);
+      }
+    } else if (interfaceState == "RESIZE_COLUMN") {
+      this.clickedMouse = undefined;
+      this.setState({
+        interfaceState: "VIEW",
+      });
+      this.columns.deselectColumn();
     }
   }
 
