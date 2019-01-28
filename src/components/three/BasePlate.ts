@@ -1,4 +1,5 @@
-import { brickHeight, brickLength, wireFrameColour, selectedWireFrameColour } from '../../constants';
+import { brickHeight, brickLength, interfaceStates, selectedWireFrameColour } from '../../constants';
+import { createPlateSquareComponents } from '../../utils';
 import * as THREE from 'three';
 
 export interface HoverableMesh extends THREE.Mesh {
@@ -62,20 +63,14 @@ export default class BasePlate {
   
   private createSquare = (length: number, width: number) => {
     const square = new THREE.Group();
-    const geometry = new THREE.BoxGeometry( brickLength, 0.1, brickLength );
-    const material = new THREE.MeshBasicMaterial( {color: 0xeeeeee} );
-    const cube = new THREE.Mesh( geometry, material );
-    (cube as HoverableMesh).onHover = (interfaceState: string) => {if(interfaceState == "ADD_COLUMN") {this.placeGhostBrick(length, width)}}
+    const { cube, cubeOutline } = createPlateSquareComponents();
+    (cube as HoverableMesh).onHover = (interfaceState: string) => {if(interfaceState == interfaceStates.ADD_COLUMN) {this.placeGhostBrick(length, width)}}
     (cube as HoverableMesh).onClick = (interfaceState: string) => {
       this.hideGhostBrick();
-      if(interfaceState == "ADD_COLUMN") {
+      if(interfaceState == interfaceStates.ADD_COLUMN) {
         this.placeColumn(length, width);
       }
     }
-
-    const outlineGeometry = new THREE.EdgesGeometry( geometry ); // or WireframeGeometry( geometry )
-    const outlineMaterial = new THREE.LineBasicMaterial( { color: wireFrameColour, linewidth: 100 } );
-    const cubeOutline = new THREE.LineSegments( outlineGeometry, outlineMaterial );
 
     square.add(cube);
     square.add(cubeOutline);

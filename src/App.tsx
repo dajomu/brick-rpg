@@ -3,7 +3,8 @@ import * as THREE from 'three';
 import Menu from './components/Menu';
 import BasePlate, {HoverableMesh} from './components/three/BasePlate';
 import Columns from './components/three/Columns';
-import {basePlateLength, basePlateWidth} from './constants';
+import Platforms from './components/three/Platforms';
+import {basePlateLength, basePlateWidth, interfaceStates} from './constants';
 import './App.css';
 import { OrbitControls } from 'three-orbitcontrols-ts';
 
@@ -15,6 +16,7 @@ class App extends Component<{}, {interfaceState: string}> {
   frameId: number | null;
   basePlate: BasePlate;
   columns: Columns;
+  platforms: Platforms;
   controls: OrbitControls | null;
   raycaster = new THREE.Raycaster();
   mouse = new THREE.Vector2();
@@ -23,7 +25,7 @@ class App extends Component<{}, {interfaceState: string}> {
   constructor(props: {}) {
     super(props);
     this.state = {
-      interfaceState: 'VIEW',
+      interfaceState: interfaceStates.CREATE_PLATFORM,
     };
     this.mount = null;
     this.scene = new THREE.Scene();
@@ -34,6 +36,7 @@ class App extends Component<{}, {interfaceState: string}> {
 
     this.basePlate = new BasePlate(this.scene, basePlateLength, basePlateWidth, this.placeColumn);
     this.columns = new Columns(this.scene, basePlateLength, basePlateWidth);
+    this.platforms = new Platforms(this.scene, basePlateLength, basePlateWidth);
 
     this.frameId = null;
   }
@@ -103,14 +106,14 @@ class App extends Component<{}, {interfaceState: string}> {
 
   checkRayCollisions = () => {
     const {interfaceState} = this.state;
-    if(interfaceState == "ADD_COLUMN") {
+    if(interfaceState == interfaceStates.ADD_COLUMN) {
       this.raycaster.setFromCamera( this.mouse, this.camera );
       var intersects = this.raycaster.intersectObjects( this.basePlate.getHoverableObjects() );
 
       if(intersects.length) {
         (intersects[0].object as HoverableMesh).onHover(this.state.interfaceState);
       }
-    } else if (interfaceState == "RESIZE_COLUMN" && this.clickedMouse && this.controls) {
+    } else if (interfaceState == interfaceStates.RESIZE_COLUMN && this.clickedMouse && this.controls) {
       const zoomDistance = this.controls.target.distanceTo( this.controls.object.position )
       this.columns.resizeSelectedColumn(Math.round((this.mouse.y - this.clickedMouse.y) * zoomDistance / 2));
     }
@@ -118,7 +121,7 @@ class App extends Component<{}, {interfaceState: string}> {
 
   clickOnScene = () => {
     const {interfaceState} = this.state;
-    if(interfaceState == "ADD_COLUMN") {
+    if(interfaceState == interfaceStates.ADD_COLUMN) {
       this.clickedMouse = this.mouse.clone();
       this.raycaster.setFromCamera( this.mouse, this.camera );
       var intersects = this.raycaster.intersectObjects( this.basePlate.getHoverableObjects() );
@@ -126,18 +129,18 @@ class App extends Component<{}, {interfaceState: string}> {
       if(intersects.length) {
         (intersects[0].object as HoverableMesh).onClick(this.state.interfaceState);
       }
-    } else if (interfaceState == "RESIZE_COLUMN") {
+    } else if (interfaceState == interfaceStates.RESIZE_COLUMN) {
       this.clickedMouse = undefined;
       this.setState({
-        interfaceState: "VIEW",
+        interfaceState: interfaceStates.VIEW,
       });
       this.columns.deselectColumn();
     }
   }
 
   placeColumn = (length: number, width: number) => {
-    if(this.state.interfaceState == "ADD_COLUMN"){
-      this.changeInterfaceState("RESIZE_COLUMN");
+    if (this.state.interfaceState == interfaceStates.ADD_COLUMN){
+      this.changeInterfaceState(interfaceStates.RESIZE_COLUMN);
       this.columns.addColumn(length, width);
     }
   }
@@ -149,7 +152,12 @@ class App extends Component<{}, {interfaceState: string}> {
   public changeInterfaceState = (newState: string) => {
     this.setState({
       interfaceState: newState,
-    })
+    });
+    if (newState == interfaceStates.VIEW) {
+      this.basePlate.hideGhostBrick();
+    } else if (newState == interfaceStates.VIEW) {
+      this.platforms.createEditablePlatform();
+    }
   }
 
   render(){
@@ -165,4 +173,5 @@ class App extends Component<{}, {interfaceState: string}> {
     )
   }
 }
+
 export default App;

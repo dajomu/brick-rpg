@@ -1,18 +1,18 @@
 .Menu {
-  width: 200px;
-  height: 300px;
+  width: 181px;
   position: absolute;
   background: #eeeeee;
   border: 1px solid #222222;
   border-radius: 4px;
   top: 20px;
   right: 20px;
+  padding: 20px;
 }
 
 .menu-button {
-  width: 160px;
+  width: 180px;
   height: 30px;
-  margin: 20px;
+  margin-bottom: 10px;
   border: 1px solid #222222;
   background: #ffffff;
 }
@@ -20,4 +20,23 @@
 .menu-button.selected {
   border: 1px solid #ffffff;
   background: #cccccc;
+}
+
+.Menu .platform-editor {
+  border-top: 1px solid #222222;
+  border-left: 1px solid #222222;
+}
+
+.platform-square {
+  width: 19px;
+  height: 19px;
+  border-right: 1px solid #222222;
+  border-bottom: 1px solid #222222;
+  display: inline-block;
+  margin-bottom: -3px;
+  background-color: #ffffff;
+}
+
+.platform-square.selected {
+  background-color: #cccccc;
 }
